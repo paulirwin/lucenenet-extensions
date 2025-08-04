@@ -1,0 +1,7 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <ItemGroup>
+      <ProjectReference Include="..\Lucene.Net.Extensions.DependencyInjection\Lucene.Net.Extensions.DependencyInjection.csproj" />
+    </ItemGroup>
+
+</Project>
