@@ -16,6 +16,12 @@ namespace Lucene.Net.Extensions.DependencyInjection.Providers
         public IndexWriter Get(string name)
         {
             var registration = _sp.GetRequiredKeyedService<IndexWriterRegistration>(name);
+            // Explicit null-check to give a personal clearer error about Writer instead of DI resolution failure.
+            if (registration == null)
+                throw new InvalidOperationException(
+            $"No writer is registered for index '{name}'. " +
+            $"Did you forget to configure WriterLifetime?");
+
             return registration.GetWriter(_sp);
         }
     }

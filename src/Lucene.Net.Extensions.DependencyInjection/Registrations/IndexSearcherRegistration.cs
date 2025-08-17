@@ -38,9 +38,6 @@ namespace Lucene.Net.Extensions.DependencyInjection.Registrations
 
                 if (_cachedSearcher?.IndexReader != currentReader)
                 {
-                    if (_cachedSearcher?.IndexReader is IDisposable disposableReader)
-                        disposableReader.Dispose();
-
                     _cachedSearcher = new IndexSearcher(currentReader);
                 }
 
@@ -54,7 +51,6 @@ namespace Lucene.Net.Extensions.DependencyInjection.Registrations
 
             lock (_lock)
             {
-                _cachedSearcher?.IndexReader?.Dispose();
                 _cachedSearcher = null;
             }
 

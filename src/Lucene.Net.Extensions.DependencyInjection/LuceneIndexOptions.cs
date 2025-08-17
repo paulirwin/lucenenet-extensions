@@ -23,7 +23,7 @@ namespace Lucene.Net.Extensions.DependencyInjection
         public Action<IServiceProvider, IndexWriterConfig>? ConfigureIndexWriterConfig { get; set; }
 
         public ServiceLifetime ReaderLifetime { get; set; } = ServiceLifetime.Singleton;
-        public ServiceLifetime WriterLifetime { get; set; } = ServiceLifetime.Singleton;
+        public ServiceLifetime? WriterLifetime { get; set; }
         public ServiceLifetime SearcherLifetime { get; set; } = ServiceLifetime.Singleton;
 
         // Effective fallbacks
@@ -36,7 +36,5 @@ namespace Lucene.Net.Extensions.DependencyInjection
         {
             ConfigureIndexWriterConfig?.Invoke(sp, config);
         }
-
-
     }
 }

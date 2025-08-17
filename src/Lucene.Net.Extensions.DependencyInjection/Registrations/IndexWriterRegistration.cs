@@ -20,7 +20,7 @@ namespace Lucene.Net.Extensions.DependencyInjection.Registrations
         public IndexWriterRegistration(string name, LuceneIndexOptions config, IServiceProvider rootSp)
         {
             _name = name;
-            _lifetime = config.WriterLifetime;
+            _lifetime = config.WriterLifetime!.Value; // Safe because service is only registered when WriterLifetime.HasValue is true
 
             _directory = config.DirectoryFactory?.Invoke(rootSp)
                          ?? FSDirectory.Open(config.IndexPath!);

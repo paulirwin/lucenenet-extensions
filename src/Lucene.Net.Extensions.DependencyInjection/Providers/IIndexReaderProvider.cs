@@ -6,5 +6,4 @@ namespace Lucene.Net.Extensions.DependencyInjection.Providers
     {
         IndexReader Get(string name);
     }
-
 }

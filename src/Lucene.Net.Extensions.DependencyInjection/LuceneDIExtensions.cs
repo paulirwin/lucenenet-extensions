@@ -15,6 +15,5 @@ namespace Lucene.Net.Extensions.DependencyInjection
 
             return new LuceneBuilder(services);
         }
-
     }
 }
