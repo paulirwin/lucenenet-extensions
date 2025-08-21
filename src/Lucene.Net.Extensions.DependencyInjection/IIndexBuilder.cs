@@ -2,8 +2,8 @@ using System;
 
 namespace Lucene.Net.Extensions.DependencyInjection
 {
-    public interface IIndexBuilder
+    public interface IIndexBuilder : ILuceneBuilder
     {
-         IIndexBuilder AddIndexWriter(Action<LuceneWriterOptions> configure);
+        IIndexBuilder AddIndexWriter(Action<LuceneWriterOptions> configure);
     }
 }

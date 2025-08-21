@@ -16,7 +16,13 @@ namespace Lucene.Net.Extensions.DependencyInjection
         public IIndexBuilder AddIndexWriter(Action<LuceneWriterOptions> configure)
         {
             _luceneBuilder.AddIndexWriter(_indexName, configure);
-            return this;
+            return this; // keep chaining on the same index
+        }
+
+        // delegate back to LuceneBuilder for adding more indexes
+        public IIndexBuilder AddIndex(string name, Action<LuceneIndexOptions> configure)
+        {
+            return _luceneBuilder.AddIndex(name, configure);
         }
     }
 }
