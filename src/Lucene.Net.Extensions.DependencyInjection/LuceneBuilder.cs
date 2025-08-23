@@ -18,23 +18,13 @@ namespace Lucene.Net.Extensions.DependencyInjection
             _services = services;
         }
 
-        public ILuceneBuilder AddIndex(string name, Action<LuceneIndexOptions> configure)
+        /// <summary>
+        /// Register a Lucene index (readers, searchers, analyzers, etc.).
+        /// </summary>
+        public IIndexBuilder AddIndex(string name, Action<LuceneIndexOptions> configure)
         {
             var options = new LuceneIndexOptions();
             configure(options);
-
-            var existingConfig = options.ConfigureIndexWriterConfig;
-
-            options.ConfigureIndexWriterConfig = (sp, config) =>
-            {
-                existingConfig?.Invoke(sp, config);
-
-                if (config.MaxBufferedDocs <= 0)
-                {
-                    config.MaxBufferedDocs = 1000;
-                }
-            };
-
 
             _services.Configure<LuceneIndexOptions>(name, configure); // still preserve this for later use
 
@@ -46,17 +36,6 @@ namespace Lucene.Net.Extensions.DependencyInjection
             else
                 _services.AddKeyedTransient<DirectoryReader>(name, CreateIndexReader);
 
-            // Register IndexWriter
-            if (options.WriterLifetime.HasValue)
-            {
-                if (options.WriterLifetime == ServiceLifetime.Singleton)
-                    _services.AddKeyedSingleton<IndexWriter>(name, CreateIndexWriter);
-                else if (options.WriterLifetime == ServiceLifetime.Scoped)
-                    _services.AddKeyedScoped<IndexWriter>(name, CreateIndexWriter);
-                else
-                    _services.AddKeyedTransient<IndexWriter>(name, CreateIndexWriter);
-            }
-
             // Register IndexSearcher
             if (options.SearcherLifetime == ServiceLifetime.Singleton)
                 _services.AddKeyedSingleton<IndexSearcher>(name, CreateIndexSearcher);
@@ -67,17 +46,40 @@ namespace Lucene.Net.Extensions.DependencyInjection
 
             // Register Registrations
             _services.AddKeyedSingleton<IndexReaderRegistration>(name, (sp, _) => new IndexReaderRegistration(name, options, sp));
-            if (options.WriterLifetime.HasValue)
-            {
-                _services.AddKeyedSingleton<IndexWriterRegistration>(name,
-                    (sp, _) => new IndexWriterRegistration(name, options, sp));
-            }
             _services.AddKeyedSingleton<IndexSearcherRegistration>(name, (sp, _) => new IndexSearcherRegistration(name, options));
             _services.AddKeyedSingleton<Analyzer>(name, (sp, _) => options.EffectiveAnalyzer);
 
-            return this;
+            return new IndexBuilder(this, name);
         }
 
+        /// <summary>
+        /// Register IndexWriter for a given index.
+        /// </summary>
+        internal void AddIndexWriter(string name, Action<LuceneWriterOptions> configure)
+        {
+            var options = new LuceneWriterOptions();
+            configure(options);
+
+            _services.Configure<LuceneWriterOptions>(name, configure);
+
+            if (options.WriterLifetime == ServiceLifetime.Singleton)
+                _services.AddKeyedSingleton<IndexWriter>(name, CreateIndexWriter);
+            else if (options.WriterLifetime == ServiceLifetime.Scoped)
+                _services.AddKeyedScoped<IndexWriter>(name, CreateIndexWriter);
+            else
+                _services.AddKeyedTransient<IndexWriter>(name, CreateIndexWriter);
+
+            _services.AddKeyedSingleton<IndexWriterRegistration>(name,
+                (sp, _) =>
+                 {
+                     var indexOptions = sp.GetRequiredService<IOptionsMonitor<LuceneIndexOptions>>().Get(name);
+                     var writerOpts = sp.GetRequiredService<IOptionsMonitor<LuceneWriterOptions>>().Get(name);
+
+                     return new IndexWriterRegistration(name, indexOptions, writerOpts, sp);
+                 });
+        }
+
+        // ----------------- Factories -----------------
         private static DirectoryReader CreateIndexReader(IServiceProvider sp, object? key)
         {
             var name = (string)key!;
@@ -88,18 +90,19 @@ namespace Lucene.Net.Extensions.DependencyInjection
         private static IndexWriter CreateIndexWriter(IServiceProvider sp, object? key)
         {
             var name = (string)key!;
-            var config = sp.GetRequiredService<IOptionsMonitor<LuceneIndexOptions>>().Get(name);
+            var indexConfig = sp.GetRequiredService<IOptionsMonitor<LuceneIndexOptions>>().Get(name);
+            var writerConfig = sp.GetRequiredService<IOptionsMonitor<LuceneWriterOptions>>().Get(name);
 
-            var directory = config.DirectoryFactory?.Invoke(sp) ?? FSDirectory.Open(config.IndexPath!);
+            var directory = indexConfig.DirectoryFactory?.Invoke(sp) ?? FSDirectory.Open(indexConfig.IndexPath!);
 
-            var writerConfig = new IndexWriterConfig(config.LuceneVersion, config.EffectiveAnalyzer)
+            var iwc = new IndexWriterConfig(indexConfig.LuceneVersion, indexConfig.EffectiveAnalyzer)
             {
-                IndexDeletionPolicy = config.EffectiveDeletionPolicy
+                IndexDeletionPolicy = writerConfig.EffectiveDeletionPolicy
             };
 
-            config.ApplyWriterSettings(sp, writerConfig);
+            writerConfig.ApplyWriterSettings(sp, iwc);
 
-            return new IndexWriter(directory, writerConfig);
+            return new IndexWriter(directory, iwc);
         }
         private static IndexSearcher CreateIndexSearcher(IServiceProvider sp, object? key)
         {

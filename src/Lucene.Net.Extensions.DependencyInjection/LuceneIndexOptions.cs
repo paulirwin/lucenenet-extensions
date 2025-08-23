@@ -18,23 +18,10 @@ namespace Lucene.Net.Extensions.DependencyInjection
 
         public bool EnableRefreshing { get; set; } = false;
 
-        public IndexDeletionPolicy? DeletionPolicy { get; set; }
-
-        public Action<IServiceProvider, IndexWriterConfig>? ConfigureIndexWriterConfig { get; set; }
-
         public ServiceLifetime ReaderLifetime { get; set; } = ServiceLifetime.Singleton;
-        public ServiceLifetime? WriterLifetime { get; set; }
         public ServiceLifetime SearcherLifetime { get; set; } = ServiceLifetime.Singleton;
 
         // Effective fallbacks
         public Analyzer EffectiveAnalyzer => Analyzer ?? new StandardAnalyzer(LuceneVersion);
-        public IndexDeletionPolicy EffectiveDeletionPolicy =>
-            DeletionPolicy ?? new SnapshotDeletionPolicy(new KeepOnlyLastCommitDeletionPolicy());
-
-        // ✅ Helper method
-        public void ApplyWriterSettings(IServiceProvider sp, IndexWriterConfig config)
-        {
-            ConfigureIndexWriterConfig?.Invoke(sp, config);
-        }
     }
 }

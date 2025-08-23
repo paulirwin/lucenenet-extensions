@@ -17,20 +17,24 @@ namespace Lucene.Net.Extensions.DependencyInjection.Registrations
         private readonly object _lock = new();
         private bool _disposed;
 
-        public IndexWriterRegistration(string name, LuceneIndexOptions config, IServiceProvider rootSp)
+        public IndexWriterRegistration(
+            string name,
+            LuceneIndexOptions indexConfig,
+            LuceneWriterOptions writerConfig,
+            IServiceProvider rootSp)
         {
             _name = name;
-            _lifetime = config.WriterLifetime!.Value; // Safe because service is only registered when WriterLifetime.HasValue is true
+            _lifetime = writerConfig.WriterLifetime;
 
-            _directory = config.DirectoryFactory?.Invoke(rootSp)
-                         ?? FSDirectory.Open(config.IndexPath!);
+            _directory = indexConfig.DirectoryFactory?.Invoke(rootSp)
+                         ?? FSDirectory.Open(indexConfig.IndexPath!);
 
-            _writerConfig = new IndexWriterConfig(config.LuceneVersion, config.EffectiveAnalyzer)
+            _writerConfig = new IndexWriterConfig(indexConfig.LuceneVersion, indexConfig.EffectiveAnalyzer)
             {
-                IndexDeletionPolicy = config.EffectiveDeletionPolicy
+                IndexDeletionPolicy = writerConfig.EffectiveDeletionPolicy
             };
 
-            config.ApplyWriterSettings(rootSp, _writerConfig);
+            writerConfig.ApplyWriterSettings(rootSp, _writerConfig);
         }
 
         public IndexWriter GetWriter(IServiceProvider sp)
