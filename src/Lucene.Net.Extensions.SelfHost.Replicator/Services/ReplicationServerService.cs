@@ -6,18 +6,26 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Lucene.Net.Replicator;
 using Lucene.Net.Replicator.Http;
-using Lucene.Net.Extensions.SelfHost.Replicator.Options;
-using Lucene.Net.Extensions.SelfHost.Replicator.Adapters;
 using Microsoft.Extensions.DependencyInjection;
+using Lucene.Net.Extensions.SelfHost.Replicator.Options;
+using Lucene.Net.Extensions.AspNetCore.Replicator.Adapters;
 
 namespace Lucene.Net.Extensions.SelfHost.Replicator.Services;
 
+/// <summary>
+/// A background service that hosts a self-contained Lucene.NET replication server using Kestrel.
+/// </summary>
 public class ReplicationServerService : BackgroundService
 {
     private readonly ILogger<ReplicationServerService> _logger;
     private readonly ReplicationServerOptions _options;
     private ReplicationService? _service;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ReplicationServerService"/> class.
+    /// </summary>
+    /// <param name="logger">The logger instance for logging server activity and errors.</param>
+    /// <param name="options">The options for configuring the replication server.</param>
     public ReplicationServerService(
         ILogger<ReplicationServerService> logger,
         IOptions<ReplicationServerOptions> options)
@@ -26,13 +34,18 @@ public class ReplicationServerService : BackgroundService
         _options = options.Value;
     }
 
+    /// <summary>
+    /// Executes the replication server as a background task.
+    /// </summary>
+    /// <param name="stoppingToken">A token to monitor for cancellation requests.</param>
+    /// <returns>A task representing the lifetime of the replication server.</returns>
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         _logger.LogInformation(
             "Starting Lucene Replication Server on port {Port} with {ShardCount} shard(s)...",
             _options.Port, _options.Replicators.Count);
 
-        // ✅ Build one ReplicationService for all shards
+        // Build one ReplicationService for all shards
         _service = new ReplicationService(_options.Replicators);
 
         var app = SetupKestrelServer();
@@ -40,6 +53,10 @@ public class ReplicationServerService : BackgroundService
         await app.RunAsync(stoppingToken);
     }
 
+    /// <summary>
+    /// Configures and builds a Kestrel-based <see cref="WebApplication"/> for handling replication requests.
+    /// </summary>
+    /// <returns>The configured <see cref="WebApplication"/> instance.</returns>
     private WebApplication SetupKestrelServer()
     {
         var builder = WebApplication.CreateBuilder();
@@ -61,9 +78,9 @@ public class ReplicationServerService : BackgroundService
                 var req = new AspNetCoreReplicationRequest(context.Request);
                 var res = new AspNetCoreReplicationResponse(context.Response);
 
-                // ✅ Reuse the single ReplicationService instance
+                // Reuse the single ReplicationService instance
                 _service!.Perform(req, res);
-                await res.FlushAsync();
+                await res.FlushAsync(context.RequestAborted);
             }
             catch (Exception ex)
             {

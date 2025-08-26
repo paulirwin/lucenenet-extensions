@@ -3,10 +3,10 @@
   <ItemGroup>
     <ProjectReference
       Include="..\Lucene.Net.Extensions.DependencyInjection\Lucene.Net.Extensions.DependencyInjection.csproj" />
+    <ProjectReference
+      Include="..\Lucene.Net.Extensions.AspNetCore.Replicator\Lucene.Net.Extensions.AspNetCore.Replicator.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Lucene.Net" Version="$(LuceneNetVersion)" />
-    <PackageReference Include="Lucene.Net.Analysis.Common" Version="$(LuceneNetVersion)" />
     <PackageReference Include="Lucene.Net.Replicator" Version="$(LuceneNetVersion)" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="$(MicrosoftExtensionsVersion)" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="$(MicrosoftExtensionsVersion)" />
