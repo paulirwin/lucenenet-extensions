@@ -1,7 +1,19 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-    <ItemGroup>
-      <ProjectReference Include="..\Lucene.Net.Extensions.DependencyInjection\Lucene.Net.Extensions.DependencyInjection.csproj" />
-    </ItemGroup>
+  <ItemGroup>
+    <ProjectReference
+      Include="..\Lucene.Net.Extensions.DependencyInjection\Lucene.Net.Extensions.DependencyInjection.csproj" />
+    <ProjectReference
+      Include="..\Lucene.Net.Extensions.AspNetCore.Replicator\Lucene.Net.Extensions.AspNetCore.Replicator.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Lucene.Net.Replicator" Version="$(LuceneNetVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="$(MicrosoftExtensionsVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="$(MicrosoftExtensionsVersion)" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Pulls in  HttpContext, Routing, Builder, Kestrel, etc. from the shared framework -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
 
 </Project>
