@@ -8,6 +8,9 @@ using LuceneDirectory = Lucene.Net.Store.Directory;
 
 namespace Lucene.Net.Extensions.DependencyInjection
 {
+    /// <summary>
+    /// Configuration options for a Lucene index, including directory, analyzer, and lifetimes for readers and searchers.
+    /// </summary>
     public class LuceneIndexOptions
     {
         public string? IndexPath { get; set; }
