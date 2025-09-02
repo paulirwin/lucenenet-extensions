@@ -42,7 +42,9 @@ public static class LuceneReplicationEndpointExtensions
                 var req = new AspNetCoreReplicationRequest(context.Request);
                 var res = new AspNetCoreReplicationResponse(context.Response);
 
+                // TODO: Make this async once Lucene.NET PR #1170 is merged and released
                 replicationService.Perform(req, res);
+
                 await res.FlushAsync(context.RequestAborted);
             }
             catch (Exception ex)
