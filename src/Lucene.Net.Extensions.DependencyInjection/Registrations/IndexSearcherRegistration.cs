@@ -5,6 +5,10 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Lucene.Net.Extensions.DependencyInjection.Registrations
 {
+    /// <summary>
+    /// Registers and provides <see cref="IndexSearcher"/> instances with optional singleton caching.
+    /// Supports different service lifetimes (Singleton, Scoped, Transient) for dependency injection.
+    /// </summary>
     public class IndexSearcherRegistration : IDisposable
     {
         private readonly string _name;
@@ -13,12 +17,23 @@ namespace Lucene.Net.Extensions.DependencyInjection.Registrations
         private readonly object _lock = new();
         private bool _disposed;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="IndexSearcherRegistration"/> class.
+        /// </summary>
+        /// <param name="name">The unique name of the index searcher registration.</param>
+        /// <param name="config">Index configuration options.</param>
         public IndexSearcherRegistration(string name, LuceneIndexOptions config)
         {
             _name = name;
             _lifetime = config.SearcherLifetime;
         }
 
+        /// <summary>
+        /// Gets an <see cref="IndexSearcher"/> instance according to the configured lifetime.
+        /// </summary>
+        /// <param name="sp">The service provider to resolve dependencies.</param>
+        /// <returns>An <see cref="IndexSearcher"/> instance.</returns>
+        /// <exception cref="NotSupportedException">Thrown if the configured service lifetime is unsupported.</exception>
         public IndexSearcher GetSearcher(IServiceProvider sp)
         {
             return _lifetime switch
@@ -29,6 +44,7 @@ namespace Lucene.Net.Extensions.DependencyInjection.Registrations
             };
         }
 
+        // Private helper that returns the cached singleton instance and refreshes it if needed.
         private IndexSearcher GetSingletonSearcher(IServiceProvider sp)
         {
             lock (_lock)
@@ -45,6 +61,9 @@ namespace Lucene.Net.Extensions.DependencyInjection.Registrations
             }
         }
 
+        /// <summary>
+        /// Releases all resources used by the <see cref="IndexSearcherRegistration"/>.
+        /// </summary>
         public void Dispose()
         {
             if (_disposed) return;

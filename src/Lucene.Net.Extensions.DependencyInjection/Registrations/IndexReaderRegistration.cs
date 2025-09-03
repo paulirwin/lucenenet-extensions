@@ -6,6 +6,10 @@ using LuceneDirectory = Lucene.Net.Store.Directory;
 
 namespace Lucene.Net.Extensions.DependencyInjection.Registrations
 {
+    /// <summary>
+    /// Registers and provides <see cref="DirectoryReader"/> instances with optional caching and refreshing.
+    /// Supports different service lifetimes (Singleton, Scoped, Transient) for dependency injection.
+    /// </summary>
     public class IndexReaderRegistration : IDisposable
     {
         private readonly string _name;
@@ -16,6 +20,12 @@ namespace Lucene.Net.Extensions.DependencyInjection.Registrations
         private readonly object _lock = new();
         private bool _disposed;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="IndexReaderRegistration"/> class.
+        /// </summary>
+        /// <param name="name">The unique name of the index reader registration.</param>
+        /// <param name="config">Index configuration options.</param>
+        /// <param name="rootSp">The root service provider used for directory creation.</param>
         public IndexReaderRegistration(string name, LuceneIndexOptions config, IServiceProvider rootSp)
         {
             _name = name;
@@ -24,6 +34,12 @@ namespace Lucene.Net.Extensions.DependencyInjection.Registrations
             _directory = config.DirectoryFactory?.Invoke(rootSp) ?? FSDirectory.Open(config.IndexPath!);
         }
 
+        /// <summary>
+        /// Gets a <see cref="DirectoryReader"/> instance according to the configured lifetime.
+        /// </summary>
+        /// <param name="sp">The service provider to resolve dependencies.</param>
+        /// <returns>A <see cref="DirectoryReader"/> instance.</returns>
+        /// <exception cref="NotSupportedException">Thrown if the configured service lifetime is unsupported.</exception>
         public DirectoryReader GetReader(IServiceProvider sp)
         {
             return _lifetime switch
@@ -39,6 +55,7 @@ namespace Lucene.Net.Extensions.DependencyInjection.Registrations
             };
         }
 
+        // Private helper that returns the cached singleton instance and refreshes it if needed.
         private DirectoryReader GetSingletonReader()
         {
             lock (_lock)
@@ -61,6 +78,9 @@ namespace Lucene.Net.Extensions.DependencyInjection.Registrations
             }
         }
 
+        /// <summary>
+        /// Releases all resources used by the <see cref="IndexReaderRegistration"/>.
+        /// </summary>
         public void Dispose()
         {
             if (_disposed) return;

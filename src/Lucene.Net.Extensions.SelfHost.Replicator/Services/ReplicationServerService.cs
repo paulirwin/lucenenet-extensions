@@ -79,7 +79,9 @@ public class ReplicationServerService : BackgroundService
                 var res = new AspNetCoreReplicationResponse(context.Response);
 
                 // Reuse the single ReplicationService instance
+                // TODO: Make this async once Lucene.NET PR #1170 is merged and released
                 _service!.Perform(req, res);
+
                 await res.FlushAsync(context.RequestAborted);
             }
             catch (Exception ex)

@@ -9,18 +9,29 @@ using System.Collections.Generic;
 
 namespace Lucene.Net.Extensions.DependencyInjection
 {
+    /// <summary>
+    /// Provides methods to register Lucene indexes, readers, searchers, writers, and analyzers
+    /// with dependency injection.
+    /// </summary>
     public class LuceneBuilder : ILuceneBuilder
     {
         private readonly IServiceCollection _services;
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="LuceneBuilder"/>.
+        /// </summary>
+        /// <param name="services">The <see cref="IServiceCollection"/> used to register services.</param>
         public LuceneBuilder(IServiceCollection services)
         {
             _services = services;
         }
 
         /// <summary>
-        /// Register a Lucene index (readers, searchers, analyzers, etc.).
+        /// Registers a Lucene index along with its readers, searchers, and analyzers.
         /// </summary>
+        /// <param name="name">The unique name of the index.</param>
+        /// <param name="configure">A delegate to configure <see cref="LuceneIndexOptions"/>.</param>
+        /// <returns>An <see cref="IIndexBuilder"/> to allow chaining writer registrations.</returns>
         public IIndexBuilder AddIndex(string name, Action<LuceneIndexOptions> configure)
         {
             var options = new LuceneIndexOptions();
@@ -53,8 +64,10 @@ namespace Lucene.Net.Extensions.DependencyInjection
         }
 
         /// <summary>
-        /// Register IndexWriter for a given index.
+        /// Registers an <see cref="IndexWriter"/> for a given index.
         /// </summary>
+        /// <param name="name">The name of the index.</param>
+        /// <param name="configure">A delegate to configure <see cref="LuceneWriterOptions"/>.</param>
         internal void AddIndexWriter(string name, Action<LuceneWriterOptions> configure)
         {
             var options = new LuceneWriterOptions();
@@ -80,6 +93,7 @@ namespace Lucene.Net.Extensions.DependencyInjection
         }
 
         // ----------------- Factories -----------------
+        // Private factory methods for creating DirectoryReader, IndexWriter, and IndexSearcher.
         private static DirectoryReader CreateIndexReader(IServiceProvider sp, object? key)
         {
             var name = (string)key!;
