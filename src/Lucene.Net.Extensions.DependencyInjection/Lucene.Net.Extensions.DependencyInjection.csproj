@@ -3,7 +3,7 @@
     <ItemGroup>
         <PackageReference Include="Lucene.Net" Version="$(LuceneNetVersion)" />
         <PackageReference Include="Lucene.Net.Analysis.Common" Version="$(LuceneNetVersion)" />
-        <PackageReference Include="Microsoft.Extensions.Options" Version="$(MicrosoftExtensionsVersion)" />
+        <PackageReference Include="Microsoft.Extensions.Options" Version="$(MicrosoftExtensionsOptionsVersion)" />
     </ItemGroup>
 
 </Project>

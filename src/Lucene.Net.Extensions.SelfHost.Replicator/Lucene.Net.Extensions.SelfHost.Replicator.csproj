@@ -8,8 +8,8 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Lucene.Net.Replicator" Version="$(LuceneNetVersion)" />
-    <PackageReference Include="Microsoft.Extensions.Options" Version="$(MicrosoftExtensionsVersion)" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="$(MicrosoftExtensionsVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="$(MicrosoftExtensionsOptionsVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="$(MicrosoftExtensionsHostingVersion)" />
   </ItemGroup>
   <ItemGroup>
     <!-- Pulls in  HttpContext, Routing, Builder, Kestrel, etc. from the shared framework -->

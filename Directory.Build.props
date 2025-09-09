@@ -8,6 +8,9 @@
 
     <PropertyGroup Label="NuGet Package Reference Versions">
         <LuceneNetVersion>4.8.0-beta00017</LuceneNetVersion>
-        <MicrosoftExtensionsVersion>9.0.6</MicrosoftExtensionsVersion>
+        <MicrosoftExtensionsHostingVersion>9.0.6</MicrosoftExtensionsHostingVersion>
+        <MicrosoftExtensionsOptionsVersion>9.0.6</MicrosoftExtensionsOptionsVersion>
+        <MicrosoftExtensionsHttpVersion>9.0.6</MicrosoftExtensionsHttpVersion>
+        <MicrosoftExtensionsLoggingAbstractionsVersion>9.0.6</MicrosoftExtensionsLoggingAbstractionsVersion>
     </PropertyGroup>
 </Project>

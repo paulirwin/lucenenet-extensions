@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <!-- Core Lucene.NET Replicator package -->
+    <PackageReference Include="Lucene.Net" Version="$(LuceneNetVersion)" />
+    <PackageReference Include="Lucene.Net.Replicator" Version="$(LuceneNetVersion)" />
+
+    <!-- Microsoft.Extensions packages -->
+    <PackageReference Include="Microsoft.Extensions.Hosting"
+      Version="$(MicrosoftExtensionsHostingVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Options"
+      Version="$(MicrosoftExtensionsOptionsVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Http"
+      Version="$(MicrosoftExtensionsHttpVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions"
+      Version="$(MicrosoftExtensionsLoggingAbstractionsVersion)" />
+  </ItemGroup>
+
+</Project>
