@@ -8,20 +8,37 @@ using Lucene.Net.Store;
 using Lucene.Net.Replicator;
 using Lucene.Net.Replicator.Http;
 using Lucene.Net.Index;
-using Lucene.Net.Extensions.ReplicationClient.Options;
+using Lucene.Net.Extensions.Replicator.Client.Options;
 using System.Diagnostics;
 using System.IO;
+using LuceneDirectory = Lucene.Net.Store.Directory;
 
-namespace Lucene.Net.Extensions.ReplicationClient.Services;
 
+namespace Lucene.Net.Extensions.Replicator.Client.Services;
+
+/// <summary>
+/// A background service that periodically pulls index updates from a
+/// configured replication source (for example, via <see cref="HttpReplicator"/>)
+/// and applies them to a replica <see cref="Lucene.Net.Store.Directory"/>.
+/// Also manages a <see cref="DirectoryReader"/> to keep consumers in sync
+/// with the latest index state.
+/// </summary>
 public class ReplicationClientService : BackgroundService
 {
     private readonly ILogger<ReplicationClientService> _logger;
     private readonly ReplicationClientOptions _options;
     private readonly HttpClient _httpClient;
-    private Lucene.Net.Store.Directory? _replicaDirectory;
+    private LuceneDirectory? _replicaDirectory;
     private DirectoryReader? _reader;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ReplicationClientService"/> class.
+    /// </summary>
+    /// <param name="logger">The logger used for diagnostic messages.</param>
+    /// <param name="options">The replication client options.</param>
+    /// <param name="httpClientFactory">Factory for creating <see cref="HttpClient"/> instances.</param>
+    /// <exception cref="InvalidOperationException">Thrown when required options such as
+    /// <see cref="ReplicationClientOptions.ServerUrl"/> are not provided.</exception>
     public ReplicationClientService(
     ILogger<ReplicationClientService> logger,
     IOptions<ReplicationClientOptions> options,
@@ -56,6 +73,11 @@ public class ReplicationClientService : BackgroundService
         }
     }
 
+    /// <summary>
+    /// Executes the replication loop, which applies index updates from the
+    /// configured replication source into the target directory at the specified
+    /// pull interval. Refreshes the <see cref="DirectoryReader"/> when changes occur.
+    /// </summary>
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         // Use pluggable directory factory if provided, otherwise default FSDirectory
@@ -69,7 +91,7 @@ public class ReplicationClientService : BackgroundService
                 : Path.GetTempPath() // dummy for RAMDirectory
         );
 
-        var handler = new IndexReplicationHandler(_replicaDirectory, null);
+        var handler = _options.ReplicationHandlerFactory(_replicaDirectory);
         var replicator = new HttpReplicator(_options.ServerUrl, _httpClient);
         var client = new Lucene.Net.Replicator.ReplicationClient(replicator, handler, factory);
 
@@ -83,7 +105,7 @@ public class ReplicationClientService : BackgroundService
                 var sw = Stopwatch.StartNew();
 
                 // Run replication in background with cancellation support
-                await Task.Run(() => client.UpdateNow(), stoppingToken);
+                await Task.Run(() => client.UpdateNow(), stoppingToken).ConfigureAwait(false);
 
                 sw.Stop();
                 _logger.LogInformation("Replication successful from {ServerUrl} in {Duration} ms",
@@ -118,10 +140,14 @@ public class ReplicationClientService : BackgroundService
                 _logger.LogError(ex, "Replication failed");
             }
 
-            await Task.Delay(_options.PullInterval, stoppingToken);
+            await Task.Delay(_options.PullInterval, stoppingToken).ConfigureAwait(false);
         }
     }
 
+    /// <summary>
+    /// Releases resources used by the service, including the current
+    /// <see cref="DirectoryReader"/> and the replica <see cref="Lucene.Net.Store.Directory"/>.
+    /// </summary>
     public override void Dispose()
     {
         base.Dispose();
@@ -130,6 +156,6 @@ public class ReplicationClientService : BackgroundService
     }
 
     // Helper: check if directory is disk-based
-    private static bool IsDiskBasedDirectory(Lucene.Net.Store.Directory directory) =>
+    private static bool IsDiskBasedDirectory(LuceneDirectory  directory) =>
         directory is FSDirectory or MMapDirectory or SimpleFSDirectory;
 }
