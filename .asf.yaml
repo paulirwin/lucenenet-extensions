@@ -2,7 +2,7 @@
 # See the documentation at: https://github.com/apache/infrastructure-asfyaml/blob/main/README.md
 
 github:
-  description: "Apache Lucene.NET Website"
+  description: "Apache Lucene.NET Extensions"
   homepage: https://lucenenet.apache.org/
   labels:
     - lucenenet
